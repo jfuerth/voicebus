@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>voicebus-parent</artifactId>
+        <groupId>net.bluecow.voicebus</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>voicebus-lambda</artifactId>
+
+    <properties>
+        <lambda.functionCode>${project.build.directory}/${project.build.finalName}.jar</lambda.functionCode>
+        <lambda.version>${project.version}</lambda.version>
+        <lambda.publish>true</lambda.publish>
+        <lambda.forceUpdate>true</lambda.forceUpdate>
+        <lambda.functionNameSuffix>dev</lambda.functionNameSuffix>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.bluecow.voicebus</groupId>
+            <artifactId>voicebus-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-core</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-log4j2</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.seanroy</groupId>
+                <artifactId>lambda-maven-plugin</artifactId>
+                <version>2.2.9</version>
+                <configuration>
+                    <functionCode>${lambda.functionCode}</functionCode>
+                    <version>${lambda.version}</version>
+                    <alias>development</alias>
+                    <environmentVpcSecurityGroupsIds>sg-123456</environmentVpcSecurityGroupsIds>
+                    <environmentVpcSubnetIds>subnet-123456,subnet-123456,subnet-123456</environmentVpcSubnetIds>
+                    <lambdaRoleArn>arn:aws:iam::1234567:role/YourLambdaS3Role</lambdaRoleArn>
+                    <s3Bucket>mys3bucket</s3Bucket>
+                    <publish>${lambda.publish}</publish>
+                    <forceUpdate>${lambda.forceUpdate}</forceUpdate>
+                    <functionNameSuffix>${lambda.functionNameSuffix}</functionNameSuffix>
+                    <!--<environmentVariables>-->
+                    <!--<key0>value0</key0>-->
+                    <!--</environmentVariables>-->
+                    <lambdaFunctionsJSON>
+                        [
+                            {
+                                "functionName": "voicebus-dialogflow-responder",
+                                "description": "Handles Dialogflow action fulfillment for Voicebus",
+                                "handler": "net.bluecow.voicebus.lambda.VoicebusLambdaFunction",
+                                "timeout": 15,
+                                "memorySize": 512,
+                                "keepAlive": 15,
+                                "triggers": [
+                                    {
+                                        "integration": "CloudWatch Events - Schedule",
+                                        "ruleName": "every-fifteen-minutes",
+                                        "ruleDescription": "Keep warm",
+                                        "scheduleExpression": "rate(15 minute)"
+                                    },
+                                    <!--{-->
+                                    <!--"integration": "Alexa Skills Kit"-->
+                                    <!--},-->
+                                ],
+                                "environmentVariables": {
+                                    "key1": "value1",
+                                    "key2": "value2"
+                                }
+                            },
+                            {
+                                "functionName": "my-function-name-1",
+                                "description": "I am awesome function too",
+                                "handler": "no.flowlab.lambda1"
+                            }
+                        ]
+                    </lambdaFunctionsJSON>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
